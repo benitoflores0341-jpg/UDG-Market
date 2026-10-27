@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Informe de Deuda Técnica</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #24292e;
+      background-color: #f6f8fa;
+      padding: 2rem;
+      margin: 0;
+    }
+
+    .deuda-tecnica {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #e1e4e8;
+      border-radius: 8px;
+      padding: 2.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .deuda-tecnica__titulo {
+      font-size: 1.8rem;
+      color: #0366d6;
+      border-bottom: 2px solid #eaecef;
+      padding-bottom: 0.5rem;
+      margin-top: 0;
+      margin-bottom: 1.5rem;
+    }
+
+    .deuda-tecnica__subtitulo {
+      font-size: 1.25rem;
+      color: #24292e;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .deuda-tecnica__parrafo {
+      margin-top: 0;
+      margin-bottom: 1rem;
+      color: #444d56;
+      text-align: justify;
+    }
+  </style>
+</head>
+<body>
+
+  <section class="deuda-tecnica">
+    <h1 class="deuda-tecnica__titulo">Cambio de herramientas iniciales</h1>
+
+    <h2 class="deuda-tecnica__subtitulo">Descripción general de la deuda técnica</h2>
+    <p class="deuda-tecnica__parrafo">
+      El proyecto se planteó originalmente empleando Flutter, Dart y MySQL Server. Sin embargo, con el avance del desarrollo se identificó que estas herramientas complicaban la escalabilidad y añadían una complejidad innecesaria respecto a los requerimientos del proyecto. Por ello, se descartó la arquitectura inicial y se seleccionó React como el framework principal.
+    </p>
+
+    <h2 class="deuda-tecnica__subtitulo">Consecuencias del incidente</h2>
+    <p class="deuda-tecnica__parrafo">
+      La consecuencia más significativa fue la necesidad de descartar el primer repositorio desarrollado, lo que generó un retraso evidente en el cronograma del proyecto.
+    </p>
+
+    <h2 class="deuda-tecnica__subtitulo">Solución propuesta</h2>
+    <p class="deuda-tecnica__parrafo">
+      Se tomó la decisión de rehacer tanto la estructura del proyecto como el repositorio desde cero para sentar las bases sobre la nueva arquitectura.
+    </p>
+  </section>
+
+</body>
+</html>
