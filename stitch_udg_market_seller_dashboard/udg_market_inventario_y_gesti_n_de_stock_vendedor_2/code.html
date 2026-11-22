@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <!-- Grupo de interacción en línea de esta página. -->
   <script>
     tailwind.config = {
       theme: {
@@ -48,11 +49,14 @@
   </style>
 </head>
 <body class="min-h-screen flex justify-center items-start sm:py-6">
+  <!-- Resumen alternativo de inventario, métricas y productos del vendedor. -->
 
   <!-- Mobile Frame Container (matching SCREEN_1 PWA mobile design) -->
+  <!-- Contenido principal de esta página. -->
   <main class="w-full max-w-md bg-brand-sandUltra min-h-screen sm:min-h-[880px] sm:rounded-[36px] shadow-2xl relative pb-28 overflow-hidden flex flex-col border border-[#d8cec4]/60">
     
     <!-- Top Sticky Header -->
+    <!-- Encabezado de la pantalla y navegación principal. -->
     <header class="sticky top-0 z-30 bg-brand-sandUltra/95 backdrop-blur-md px-5 pt-5 pb-3 border-b border-[#E8DFD8]">
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
@@ -388,6 +392,7 @@
     </div>
 
     <!-- Fixed Bottom Tab Bar (matching SCREEN_1 with "Inventario" tab active in Terracotta) -->
+    <!-- Navegación disponible dentro de la pantalla. -->
     <nav class="fixed sm:absolute bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E8DFD8] py-2 px-6 flex justify-around items-center max-w-md mx-auto">
       
       <!-- Tab 1: Ventas (con badge de 3 pedidos activos) -->
@@ -422,6 +427,7 @@
 
   </main>
 
+  <!-- Grupo de interacción en línea de esta página. -->
   <script>
     function changeStock(elementId, delta) {
       const el = document.getElementById(elementId);

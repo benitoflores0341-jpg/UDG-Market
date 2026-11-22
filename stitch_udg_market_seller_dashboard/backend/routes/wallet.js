@@ -9,6 +9,7 @@ const { requireAuth, requireSeller } = require('../middleware/auth');
 
 const router = Router();
 
+// Emite o recupera el pase estable del comprador y crea su imagen QR de entrega.
 router.post('/orders/:orderId/pass', requireAuth, async (req, res) => {
   const orderId = parseId(req.params.orderId);
   if (!orderId) return res.status(400).json({ error: 'El pedido no es válido.' });
@@ -76,6 +77,7 @@ router.post('/orders/:orderId/pass', requireAuth, async (req, res) => {
   });
 });
 
+// Valida un token QR y comprueba que el pase pertenezca al vendedor del pedido.
 router.post('/passes/validate', requireSeller, async (req, res) => {
   const token = req.body && req.body.qrToken;
   if (typeof token !== 'string' || token.length < 20 || token.length > 200) {

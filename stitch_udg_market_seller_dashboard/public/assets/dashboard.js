@@ -1,7 +1,10 @@
+// Coordina navegación, sesión, perfiles y pedidos entre el dashboard y sus módulos iframe.
 const $ = (selector) => document.querySelector(selector);
 const dashboardState = { user: null, module: null };
+// Conserva el pase ya emitido durante la sesión actual para no pedirlo repetidamente.
 const issuedOrderPasses = new Map();
 
+// Relaciona los identificadores de navegación con el título y ruta de cada pantalla.
 const modules = {
   catalog: { title: 'Productos del campus', path: '/modulos/catalog' },
   inventory: { title: 'Mi inventario', path: '/modulos/inventory' },
@@ -25,17 +28,20 @@ const sellerOnlyModules = new Set([
   'inventory-stock-alt'
 ]);
 
+// Muestra mensajes globales del dashboard, incluidos errores de sus módulos.
 function showNotice(message, success = false) {
   const notice = $('#global-notice');
   notice.textContent = message;
   notice.classList.toggle('success', Boolean(success));
 }
 
+// Usa el rol autenticado como fuente única para decidir si es una cuenta vendedora.
 function sellerMode() {
   return Boolean(dashboardState.user) &&
     ['seller', 'both', 'admin'].includes(dashboardState.user.role);
 }
 
+// Convierte enlaces/hash heredados de las pantallas HTML al módulo del dashboard.
 function moduleForLegacyLink(url) {
   const hash = url.hash.replace(/^#/, '');
   const hashModules = {
@@ -63,6 +69,7 @@ function moduleForLegacyLink(url) {
   return null;
 }
 
+// Cambia el iframe y sincroniza título, navegación accesible y hash de la URL.
 function showModule(moduleName, updateHash = true) {
   const module = modules[moduleName];
   if (!module) return;
@@ -88,6 +95,7 @@ function showModule(moduleName, updateHash = true) {
   }
 }
 
+// Envía solicitudes API con cookie de sesión y convierte errores HTTP a mensajes útiles.
 async function requestJson(url, options = {}) {
   const response = await fetch(url, { credentials: 'same-origin', ...options });
   let body;
@@ -100,6 +108,7 @@ async function requestJson(url, options = {}) {
   return body;
 }
 
+// Genera iniciales para avatares sin imagen.
 function profileInitials(user) {
   return (user.fullName || '')
     .trim()
@@ -110,6 +119,7 @@ function profileInitials(user) {
     .toUpperCase();
 }
 
+// Sincroniza una imagen de avatar y su respaldo de iniciales en una pantalla.
 function setAvatar(doc, imageId, initialsId, user) {
   const image = doc.getElementById(imageId);
   const initials = doc.getElementById(initialsId);
@@ -124,6 +134,7 @@ function setAvatar(doc, imageId, initialsId, user) {
   }
 }
 
+// Oculta herramientas de vendedor a compradores y refleja la disponibilidad de la tienda.
 function renderSellerAvailability(doc) {
   const isSeller = sellerMode();
   const acceptsOrders = dashboardState.user.acceptsOrders == null
@@ -175,6 +186,7 @@ function renderSellerAvailability(doc) {
   if (toggleLabel) toggleLabel.style.backgroundColor = acceptsOrders ? '#228276' : '#637080';
 }
 
+// Guarda en el backend la disponibilidad y restaura el valor previo si falla.
 async function setSellerAvailability(doc, checkbox) {
   if (!sellerMode()) {
     checkbox.checked = false;
@@ -207,6 +219,7 @@ async function setSellerAvailability(doc, checkbox) {
   }
 }
 
+// Inserta los datos de cuenta en las pantallas de perfil y ajustes del iframe.
 function hydrateProfileModule(doc) {
   const user = dashboardState.user;
   if (!user) return;
@@ -246,6 +259,7 @@ function hydrateProfileModule(doc) {
   renderSellerAvailability(doc);
 }
 
+// Renderiza reseñas recibidas por API o un estado vacío cuando no hay opiniones.
 function renderSellerReviews(doc, reviews) {
   const container = doc.getElementById('reviews-container');
   if (!container) return;
@@ -284,6 +298,7 @@ function renderSellerReviews(doc, reviews) {
   }
 }
 
+// Formatea una fecha de pedido en español y evita mostrar fechas inválidas.
 function formatOrderDate(value) {
   if (!value) return 'Fecha por definir';
   const date = new Date(value);
@@ -294,6 +309,7 @@ function formatOrderDate(value) {
   }).format(date);
 }
 
+// Traduce los estados internos de pedidos a etiquetas legibles.
 function orderStatusLabel(status) {
   return {
     pending: 'Pendiente de confirmación',
@@ -304,6 +320,7 @@ function orderStatusLabel(status) {
   }[status] || status;
 }
 
+// Construye una tarjeta de pedido y muestra el QR del comprador cuando está confirmado o listo.
 function createOrderCard(doc, order, isSeller) {
   const card = doc.createElement('article');
   card.className = 'rounded-3xl border border-slate-100 bg-white p-4 shadow-sm space-y-3';
@@ -374,6 +391,7 @@ function createOrderCard(doc, order, isSeller) {
   return card;
 }
 
+// Crea un botón de acción conectado al flujo de pedido correspondiente.
 function createOrderAction(doc, order, action, label, colors) {
   const button = doc.createElement('button');
   button.type = 'button';
@@ -384,6 +402,7 @@ function createOrderAction(doc, order, action, label, colors) {
   return button;
 }
 
+// Presenta el estado vacío de las listas de pedidos.
 function createEmptyOrdersMessage(doc, message) {
   const empty = doc.createElement('div');
   empty.className = 'rounded-3xl border border-slate-100 bg-white px-6 py-12 text-center text-sm text-slate-500';
@@ -391,6 +410,7 @@ function createEmptyOrdersMessage(doc, message) {
   return empty;
 }
 
+// Abre una versión ampliada del pase QR y ofrece copiar el código de respaldo.
 async function openOrderPass(doc, order) {
   const pass = await getOrderPass(order);
 
@@ -442,6 +462,7 @@ async function openOrderPass(doc, order) {
   close.focus();
 }
 
+// Solicita el pase del pedido una vez y reutiliza su QR en el resto de la vista.
 async function getOrderPass(order) {
   const key = String(order.id);
   let pass = issuedOrderPasses.get(key);
@@ -460,6 +481,7 @@ async function getOrderPass(order) {
   return pass;
 }
 
+// Carga y dibuja el QR en la tarjeta de pedido del comprador.
 async function loadOrderPassIntoPanel(doc, order, panel) {
   try {
     const pass = await getOrderPass(order);
@@ -480,6 +502,7 @@ async function loadOrderPassIntoPanel(doc, order, panel) {
   }
 }
 
+// Permite al vendedor escanear el QR o introducir el token para registrar la entrega.
 function openOrderQrScanner(doc, order) {
   const view = doc.defaultView;
   const modal = doc.createElement('div');
@@ -638,6 +661,7 @@ function openOrderQrScanner(doc, order) {
   tokenInput.focus();
 }
 
+// Ejecuta confirmar, marcar listo, mostrar QR o iniciar la validación de entrega.
 async function handleOrderAction(doc, order, action, button) {
   if (action === 'pass') {
     button.disabled = true;
@@ -677,6 +701,7 @@ async function handleOrderAction(doc, order, action, button) {
   }
 }
 
+// Carga pedidos de comprador/vendedor y actualiza las listas, contadores y estados.
 async function hydrateOrderModule(doc, moduleName) {
   const isSeller = moduleName === 'seller-orders';
   const { orders } = await requestJson(`/api/orders?as=${isSeller ? 'seller' : 'buyer'}`);
@@ -736,6 +761,7 @@ async function hydrateOrderModule(doc, moduleName) {
   }
 }
 
+// Limpia módulos sin integración de datos reales para no mostrar ejemplos estáticos.
 function clearUnconnectedOrderModule(doc) {
   const main = doc.querySelector('main');
   if (!main) return;
@@ -744,6 +770,7 @@ function clearUnconnectedOrderModule(doc) {
   );
 }
 
+// Carga el perfil público de vendedor y su resumen/reseñas desde las API.
 async function hydrateSellerProfile(doc) {
   const main = doc.querySelector('main');
   if (!main) return;
@@ -830,6 +857,7 @@ async function hydrateSellerProfile(doc) {
   main.hidden = false;
 }
 
+// Muestra el error recibido al cargar el perfil público sin ocultarlo.
 function showSellerProfileError(doc, error) {
   const main = doc.querySelector('main');
   if (main) {
@@ -844,6 +872,7 @@ function showSellerProfileError(doc, error) {
   console.error(error);
 }
 
+// Valida, guarda y refresca los datos del perfil y la imagen del avatar.
 async function saveProfileFromModule(doc) {
   const form = doc.getElementById('edit-profile-form');
   if (!form.reportValidity()) return;
@@ -881,6 +910,7 @@ async function saveProfileFromModule(doc) {
   }
 }
 
+// Vuelve a consultar la cuenta después de guardar y actualiza la navegación.
 async function refreshDashboardProfile(moduleDocument) {
   const body = await requestJson('/api/auth/me');
   dashboardState.user = body.user;
@@ -890,6 +920,7 @@ async function refreshDashboardProfile(moduleDocument) {
   if (moduleDocument) hydrateProfileModule(moduleDocument);
 }
 
+// Cierra la sesión en el backend y regresa a la pantalla de acceso.
 async function logoutFromDashboard() {
   await requestJson('/api/auth/logout', {
     method: 'POST',
@@ -899,6 +930,7 @@ async function logoutFromDashboard() {
   window.location.replace('/app/login.html');
 }
 
+// Intercepta navegación y formularios de los iframes y conecta cada módulo con su API.
 function prepareModuleLinks() {
   const frame = $('#module-frame');
   try {
@@ -963,6 +995,7 @@ function prepareModuleLinks() {
   }
 }
 
+// Carga la identidad y el rol de la sesión antes de mostrar la pantalla inicial.
 async function loadProfile() {
   const response = await fetch('/api/auth/me', { credentials: 'same-origin' });
   if (response.status === 401) {
@@ -987,10 +1020,12 @@ async function loadProfile() {
   showModule(modules[requestedModule] ? requestedModule : defaultModule, false);
 }
 
+// Expone operaciones compartidas para los botones de los documentos iframe.
 window.refreshDashboardProfile = refreshDashboardProfile;
 window.saveProfileFromModule = saveProfileFromModule;
 window.hydrateProfileModule = hydrateProfileModule;
 window.logoutFromDashboard = logoutFromDashboard;
+// Conecta navegación, selector, hash de URL y cierre de sesión.
 $('#module-frame').addEventListener('load', prepareModuleLinks);
 document.querySelectorAll('[data-module-nav]').forEach((button) => {
   button.addEventListener('click', () => showModule(button.dataset.moduleNav));
@@ -1012,6 +1047,7 @@ $('#logout-button').addEventListener('click', () => {
   });
 });
 
+// Inicializa el dashboard solo después de comprobar la cuenta autenticada.
 loadProfile().catch((error) => {
   showNotice(error.message);
   console.error(error);

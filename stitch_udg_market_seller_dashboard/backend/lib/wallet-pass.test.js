@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createQrToken } = require('./wallet-pass');
 
+// El mismo pase conserva su QR; cambiar pedido, serie o secreto produce otro token.
 test('creates a stable QR token for the same pass and changes it for another pass', () => {
   const token = createQrToken(12, 'UDG-12-ABC123', 'a sufficiently long secret');
 

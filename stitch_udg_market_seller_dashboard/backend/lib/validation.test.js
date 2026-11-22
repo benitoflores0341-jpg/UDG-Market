@@ -10,18 +10,21 @@ const {
   parseTags
 } = require('./validation');
 
+// Confirma que el correo se normalice antes de validar su estructura.
 test('normalizes email without accepting whitespace-only addresses', () => {
   assert.equal(normalizeEmail('  User@Example.com '), 'user@example.com');
   assert.equal(EMAIL_PATTERN.test(normalizeEmail('  User@Example.com ')), true);
   assert.equal(EMAIL_PATTERN.test(normalizeEmail('   ')), false);
 });
 
+// Comprueba que los campos de registro opcionales vacíos se conviertan en null.
 test('normalizes blank optional registration fields to null', () => {
   assert.equal(normalizeOptionalString(''), null);
   assert.equal(normalizeOptionalString('   '), null);
   assert.equal(normalizeOptionalString('  Ingeniería  '), 'Ingeniería');
 });
 
+// Verifica límites de IDs y cantidades para proteger las escrituras de pedidos.
 test('accepts only positive safe identifiers and valid purchase quantities', () => {
   assert.equal(parseId('17'), 17);
   assert.equal(parseId('0'), null);
@@ -33,12 +36,14 @@ test('accepts only positive safe identifiers and valid purchase quantities', () 
   assert.equal(parseQuantity(true), null);
 });
 
+// Comprueba normalización de importes y rechazo de valores inválidos.
 test('normalizes prices and rejects invalid amounts', () => {
   assert.equal(parsePrice('25.5'), 25.5);
   assert.equal(parsePrice(0), null);
   assert.equal(parsePrice('no es precio'), null);
 });
 
+// Asegura que las etiquetas estén permitidas y que no se repitan.
 test('validates and deduplicates product diet/allergen tags', () => {
   assert.deepEqual(parseTags([
     { name: 'Nuez', type: 'allergen' },

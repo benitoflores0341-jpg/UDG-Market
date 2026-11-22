@@ -1,7 +1,9 @@
+// Responde con el formato común cuando ninguna ruta coincide.
 function notFound(req, res) {
   res.status(404).json({ error: 'No se encontró el recurso solicitado.' });
 }
 
+// Convierte errores conocidos de Express, MySQL y multer en respuestas HTTP claras.
 function errorHandler(error, req, res, next) {
   if (res.headersSent) return next(error);
 

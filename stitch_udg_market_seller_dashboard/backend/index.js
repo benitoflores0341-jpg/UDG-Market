@@ -2,6 +2,7 @@ const config = require('./config');
 const { pool } = require('./db');
 const app = require('./app');
 
+// Comprueba MySQL, inicia Express y registra el cierre ordenado del proceso.
 async function start() {
   await pool.query('SELECT 1 FROM users LIMIT 0');
   await pool.query('SELECT 1 FROM sessions LIMIT 0');
@@ -16,6 +17,7 @@ async function start() {
       process.exit(0);
     });
   };
+  // Cierra HTTP, sesiones y conexiones MySQL al detener el proceso.
   process.on('SIGINT', shutdown);
   process.on('SIGTERM', shutdown);
 }

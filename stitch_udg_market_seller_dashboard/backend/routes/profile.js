@@ -5,6 +5,7 @@ const { requireAuth, requireSeller } = require('../middleware/auth');
 
 const router = Router();
 
+// Devuelve información personal, preferencias y datos de tienda de la sesión.
 router.get('/', requireAuth, async (req, res) => {
   const [rows] = await pool.execute(
     `SELECT u.id, u.full_name AS fullName, u.email, u.student_code AS studentCode,
@@ -22,6 +23,7 @@ router.get('/', requireAuth, async (req, res) => {
   res.json({ profile: rows[0] });
 });
 
+// Valida y guarda solo los campos enviados del perfil y sus preferencias.
 router.patch('/', requireAuth, async (req, res) => {
   const body = req.body || {};
   const userId = req.session.user.id;
@@ -143,6 +145,7 @@ router.patch('/', requireAuth, async (req, res) => {
   res.json({ message: 'Perfil actualizado.' });
 });
 
+// Expone información pública del vendedor junto con el resumen de sus reseñas.
 router.get('/seller/:sellerId', async (req, res) => {
   const sellerId = Number(req.params.sellerId);
   if (!Number.isSafeInteger(sellerId) || sellerId < 1) {
@@ -165,6 +168,7 @@ router.get('/seller/:sellerId', async (req, res) => {
   res.json({ seller: rows[0] });
 });
 
+// Pausa o reactiva la recepción de pedidos sin cambiar el rol de la cuenta.
 router.patch('/seller/orders', requireSeller, async (req, res) => {
   const { acceptsOrders } = req.body || {};
   if (typeof acceptsOrders !== 'boolean') {

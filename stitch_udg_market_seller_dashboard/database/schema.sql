@@ -1,9 +1,12 @@
+-- Crea la base principal con soporte para textos Unicode.
 CREATE DATABASE IF NOT EXISTS udgmarket_v2
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_0900_ai_ci;
 
+-- El resto del esquema se instala en la base de datos de la aplicación.
 USE udgmarket_v2;
 
+-- Catálogo de campus usados en el registro, el perfil y las búsquedas.
 CREATE TABLE IF NOT EXISTS campuses (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   code VARCHAR(20) NOT NULL,
@@ -12,6 +15,7 @@ CREATE TABLE IF NOT EXISTS campuses (
   UNIQUE KEY uq_campuses_code (code)
 ) ENGINE=InnoDB;
 
+-- Precarga los campus y actualiza sus nombres si se vuelve a ejecutar el esquema.
 INSERT INTO campuses (code, name) VALUES
   ('CUCEI', 'Centro Universitario de Ciencias Exactas e Ingenierías'),
   ('CUCEA', 'Centro Universitario de Ciencias Económico Administrativas'),
@@ -27,6 +31,7 @@ INSERT INTO campuses (code, name) VALUES
   ('SUV', 'Sistema de Universidad Virtual')
 ON DUPLICATE KEY UPDATE name = VALUES(name);
 
+-- Sesiones de Express persistidas para conservar el acceso entre reinicios.
 CREATE TABLE IF NOT EXISTS sessions (
   session_id VARCHAR(128) COLLATE utf8mb4_bin NOT NULL,
   expires INT UNSIGNED NOT NULL,
@@ -35,6 +40,7 @@ CREATE TABLE IF NOT EXISTS sessions (
   KEY ix_sessions_expires (expires)
 ) ENGINE=InnoDB;
 
+-- Cuentas, credenciales protegidas y rol que determina el acceso a la app.
 CREATE TABLE IF NOT EXISTS users (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   campus_id BIGINT UNSIGNED NULL,
@@ -57,6 +63,7 @@ CREATE TABLE IF NOT EXISTS users (
     ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
+-- Preferencias de notificación asociadas a cada cuenta.
 CREATE TABLE IF NOT EXISTS user_preferences (
   user_id BIGINT UNSIGNED NOT NULL,
   order_notifications BOOLEAN NOT NULL DEFAULT TRUE,
@@ -68,6 +75,7 @@ CREATE TABLE IF NOT EXISTS user_preferences (
     ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- Datos de tienda exclusivos de cuentas con rol vendedor.
 CREATE TABLE IF NOT EXISTS seller_profiles (
   user_id BIGINT UNSIGNED NOT NULL,
   store_name VARCHAR(120) NULL,
@@ -81,6 +89,7 @@ CREATE TABLE IF NOT EXISTS seller_profiles (
     ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
+-- Categorías disponibles para organizar y filtrar productos.
 CREATE TABLE  IF NOT EXISTS categories (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   name VARCHAR(80) NOT NULL,
@@ -88,6 +97,7 @@ CREATE TABLE  IF NOT EXISTS categories (
   UNIQUE KEY uq_categories_name (name)
 ) ENGINE=InnoDB;
 
+-- Inserta las categorías iniciales sin duplicarlas al reinstalar el esquema.
 INSERT INTO categories (name) VALUES
   ('Comida preparada'),
   ('Postres'),
@@ -97,6 +107,7 @@ INSERT INTO categories (name) VALUES
   ('Otros')
 ON DUPLICATE KEY UPDATE name = VALUES(name);
 
+-- Productos, precios, existencias e información visible en el catálogo.
 CREATE TABLE IF NOT EXISTS products (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   seller_id BIGINT UNSIGNED NOT NULL,
@@ -123,6 +134,7 @@ CREATE TABLE IF NOT EXISTS products (
   CONSTRAINT chk_products_price CHECK (price > 0)
 ) ENGINE=InnoDB;
 
+-- Imágenes adicionales de productos y su orden de presentación.
 CREATE TABLE IF NOT EXISTS product_images (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   product_id BIGINT UNSIGNED NOT NULL,
@@ -135,6 +147,7 @@ CREATE TABLE IF NOT EXISTS product_images (
     ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- Etiquetas permitidas para alérgenos y preferencias alimentarias.
 CREATE TABLE IF NOT EXISTS product_tags (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   name VARCHAR(60) NOT NULL,
@@ -143,6 +156,7 @@ CREATE TABLE IF NOT EXISTS product_tags (
   UNIQUE KEY uq_product_tags_type_name (tag_type, name)
 ) ENGINE=InnoDB;
 
+-- Relación muchos-a-muchos entre productos y etiquetas.
 CREATE TABLE IF NOT EXISTS product_tag_assignments (
   product_id BIGINT UNSIGNED NOT NULL,
   tag_id BIGINT UNSIGNED NOT NULL,
@@ -155,6 +169,7 @@ CREATE TABLE IF NOT EXISTS product_tag_assignments (
     ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- Puntos de entrega administrados por las tiendas.
 CREATE TABLE IF NOT EXISTS pickup_locations (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   seller_id BIGINT UNSIGNED NOT NULL,
@@ -168,6 +183,7 @@ CREATE TABLE IF NOT EXISTS pickup_locations (
     ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
+-- Puntos de entrega habilitados para cada producto.
 CREATE TABLE IF NOT EXISTS product_pickup_locations (
   product_id BIGINT UNSIGNED NOT NULL,
   pickup_location_id BIGINT UNSIGNED NOT NULL,
@@ -180,6 +196,7 @@ CREATE TABLE IF NOT EXISTS product_pickup_locations (
     ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
+-- Pedidos y snapshots que conservan ubicación, participantes, estado y totales.
 CREATE TABLE IF NOT EXISTS orders (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   order_code VARCHAR(24) NOT NULL,
@@ -212,6 +229,7 @@ CREATE TABLE IF NOT EXISTS orders (
   CONSTRAINT chk_orders_totals CHECK (subtotal >= 0 AND total >= 0)
 ) ENGINE=InnoDB;
 
+-- Productos comprados; conserva nombre y precio aunque el producto cambie después.
 CREATE TABLE IF NOT EXISTS order_items (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   order_id BIGINT UNSIGNED NOT NULL,
@@ -232,6 +250,7 @@ CREATE TABLE IF NOT EXISTS order_items (
     CHECK (unit_price >= 0 AND quantity > 0 AND line_total >= 0)
 ) ENGINE=InnoDB;
 
+-- Método y estado de pagos registrados manualmente por el vendedor.
 CREATE TABLE IF NOT EXISTS payments (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   order_id BIGINT UNSIGNED NOT NULL,
@@ -249,6 +268,7 @@ CREATE TABLE IF NOT EXISTS payments (
   CONSTRAINT chk_payments_amount CHECK (amount >= 0)
 ) ENGINE=InnoDB;
 
+-- Motivo y autor de cada cancelación, con una cancelación por pedido.
 CREATE TABLE IF NOT EXISTS order_cancellations (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   order_id BIGINT UNSIGNED NOT NULL,
@@ -272,6 +292,7 @@ CREATE TABLE IF NOT EXISTS order_cancellations (
     ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
+-- Estado del pase QR y hash de su token; el token original no se almacena.
 CREATE TABLE IF NOT EXISTS wallet_passes (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   order_id BIGINT UNSIGNED NOT NULL,
@@ -288,6 +309,7 @@ CREATE TABLE IF NOT EXISTS wallet_passes (
     ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
+-- Reseñas vinculadas a una línea de pedido del comprador.
 CREATE TABLE IF NOT EXISTS reviews (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   order_item_id BIGINT UNSIGNED NOT NULL,

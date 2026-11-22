@@ -1,18 +1,22 @@
 const path = require('node:path');
 const dotenv = require('dotenv');
 
+// Carga la configuración desde la raíz de la aplicación, independientemente del cwd.
 dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
+// Rechaza secretos débiles antes de que el servidor use sesiones o firme pases QR.
 const sessionSecret = process.env.SESSION_SECRET || '';
 if (sessionSecret.length < 32 || sessionSecret.includes('replace-with-')) {
   throw new Error('Configura SESSION_SECRET con al menos 32 caracteres aleatorios en .env.');
 }
 
+// Limita el tamaño permitido para las imágenes subidas por vendedores.
 const imageMaxSizeMb = Number(process.env.IMAGE_MAX_SIZE_MB || 5);
 if (!Number.isInteger(imageMaxSizeMb) || imageMaxSizeMb < 1 || imageMaxSizeMb > 20) {
   throw new Error('IMAGE_MAX_SIZE_MB debe ser un entero entre 1 y 20.');
 }
 
+// Exporta la configuración validada para el servidor, sesiones y conexión MySQL.
 module.exports = {
   port: Number(process.env.PORT || 3000),
   nodeEnv: process.env.NODE_ENV || 'development',

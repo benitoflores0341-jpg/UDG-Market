@@ -1,3 +1,4 @@
+// Mantiene filtros, sesión del comprador y control de solicitudes del catálogo.
 const catalogState = {
   initialized: false,
   eventsBound: false,
@@ -9,8 +10,10 @@ const catalogState = {
   searchTimer: null
 };
 
+// Consulta un elemento del DOM del módulo de catálogo.
 const catalogElement = (selector) => document.querySelector(selector);
 
+// Centraliza solicitudes API y convierte respuestas inválidas/errores HTTP en excepciones.
 async function catalogRequestJson(url, options = {}) {
   const response = await fetch(url, { credentials: 'same-origin', ...options });
   let body;
@@ -23,6 +26,7 @@ async function catalogRequestJson(url, options = {}) {
   return body;
 }
 
+// Formatea un precio con la moneda local de México.
 function productPrice(value) {
   return new Intl.NumberFormat('es-MX', {
     style: 'currency',
@@ -31,6 +35,7 @@ function productPrice(value) {
   }).format(Number(value));
 }
 
+// Genera iniciales para el avatar compacto del vendedor.
 function sellerInitials(name) {
   return (name || 'Vendedor')
     .trim()
@@ -41,6 +46,7 @@ function sellerInitials(name) {
     .toUpperCase();
 }
 
+// Presenta estados de carga, error y reintento en el catálogo.
 function setCatalogMessage(message, isError = false, retryAction = null) {
   const container = catalogElement('#catalog-message');
   container.replaceChildren();
@@ -60,6 +66,7 @@ function setCatalogMessage(message, isError = false, retryAction = null) {
   }
 }
 
+// Crea un icono SVG a partir de los datos de ruta recibidos.
 function makeSvgIcon(pathData, className = '') {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 24 24');
@@ -71,6 +78,7 @@ function makeSvgIcon(pathData, className = '') {
   return svg;
 }
 
+// Dibuja el estado vacío según haya filtros activos o ningún producto publicado.
 function renderEmptyState() {
   const empty = document.createElement('div');
   empty.className = 'empty-state';
@@ -89,6 +97,7 @@ function renderEmptyState() {
   return empty;
 }
 
+// Construye una tarjeta de producto con precio, vendedor, stock e ingreso a detalles.
 function createProductCard(product) {
   const card = document.createElement('article');
   card.className = 'product-card';
@@ -159,6 +168,7 @@ function createProductCard(product) {
   return card;
 }
 
+// Reemplaza la cuadrícula con productos o un mensaje cuando no hay coincidencias.
 function renderProducts(products) {
   const grid = catalogElement('#product-grid');
   grid.replaceChildren();
@@ -169,11 +179,13 @@ function renderProducts(products) {
   for (const product of products) grid.append(createProductCard(product));
 }
 
+// Actualiza el número de resultados visibles.
 function setResultCount(count) {
   catalogElement('#result-count').textContent =
     `${count} ${count === 1 ? 'producto' : 'productos'}`;
 }
 
+// Busca en la API aplicando texto, categoría y campus; ignora respuestas antiguas.
 async function loadProducts() {
   const currentRequest = ++catalogState.requestId;
   setCatalogMessage('Buscando productos…');
@@ -197,6 +209,7 @@ async function loadProducts() {
   }
 }
 
+// Construye los filtros de categoría y conecta su selección con la búsqueda.
 function renderCategories(categories) {
   const list = catalogElement('#category-list');
   const allButton = list.querySelector('[data-category-id=""]');
@@ -230,11 +243,13 @@ function renderCategories(categories) {
   };
 }
 
+// Convierte una fecha al formato local que requiere `datetime-local`.
 function localDateTimeValue(date) {
   const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
   return localDate.toISOString().slice(0, 16);
 }
 
+// Crea el formulario de compra con horario, punto de entrega y método de pago.
 function createPurchaseForm(product) {
   const section = document.createElement('section');
   section.className = 'purchase-section';
@@ -383,6 +398,7 @@ function createPurchaseForm(product) {
   return section;
 }
 
+// Carga los detalles reales y abre el diálogo que incluye la solicitud de compra.
 async function openProductDetails(productId) {
   const dialog = catalogElement('#product-dialog');
   const content = catalogElement('#dialog-product');
@@ -463,6 +479,7 @@ async function openProductDetails(productId) {
   }
 }
 
+// Enlaza búsqueda, limpieza, categorías y diálogo una sola vez al inicializar el módulo.
 async function initializeCatalog() {
   if (catalogState.initialized) return;
   catalogState.initialized = true;
@@ -517,5 +534,7 @@ async function initializeCatalog() {
   }
 }
 
+// Expone el inicializador para que el dashboard lo invoque al cargar el iframe.
 window.initializeCatalog = initializeCatalog;
+// Permite también iniciar el catálogo cuando se abre como documento independiente.
 document.addEventListener('DOMContentLoaded', initializeCatalog, { once: true });

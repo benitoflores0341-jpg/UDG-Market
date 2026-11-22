@@ -7,6 +7,7 @@
 <!-- Tailwind CSS v3 -->
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <!-- Tailwind Configuration -->
+<!-- Grupo de interacción en línea de esta página. -->
 <script>
     tailwind.config = {
       theme: {
@@ -56,10 +57,12 @@
   </style>
 </head>
 <body class="min-h-screen py-4 sm:py-8 flex justify-center items-start text-brand-navy selection:bg-red-100 selection:text-brand-terracota">
+  <!-- Formulario para actualizar información e imágenes de un producto. -->
 <!-- BEGIN: PhoneShellContainer -->
 <!-- Mobile PWA Container: Centered max-w-md matching the UDG Market App layout -->
 <div class="w-full max-w-md bg-[#FBF9F7] rounded-[36px] shadow-2xl overflow-hidden border-8 border-stone-800/10 flex flex-col min-h-[920px] relative" data-purpose="pwa-screen-frame">
 <!-- BEGIN: TopBar -->
+<!-- Encabezado de la pantalla y navegación principal. -->
 <header class="sticky top-0 z-30 bg-[#FBF9F7]/95 backdrop-blur-md px-5 pt-5 pb-3 border-b border-stone-200/70">
 <!-- Status & Campus Tag -->
 <div class="flex items-center justify-between text-xs text-stone-500 mb-2">
@@ -92,6 +95,7 @@
 </header>
 <!-- END: TopBar -->
 <!-- BEGIN: MainContentScrollable -->
+<!-- Contenido principal de esta página. -->
 <main class="flex-1 overflow-y-auto px-5 py-4 space-y-6 pb-28">
 <form class="space-y-6" id="edit-product-form" onsubmit="event.preventDefault();">
 <!-- BEGIN: PhotoSection -->
@@ -338,6 +342,7 @@
 <!-- END: PhoneShellContainer -->
 <!-- BEGIN: InteractiveScripts -->
 <!-- Lightweight JS for quantity controls -->
+<!-- Grupo de interacción en línea de esta página. -->
 <script data-purpose="stepper-controls">
     document.addEventListener('DOMContentLoaded', () => {
       const stepperContainer = document.querySelector('[data-purpose="inventory-stock-controls"]');

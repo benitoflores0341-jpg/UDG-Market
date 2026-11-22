@@ -8,7 +8,10 @@
   <script defer src="/app/assets/catalog.js"></script>
 </head>
 <body>
+  <!-- Catálogo público para explorar productos disponibles dentro del campus. -->
+  <!-- Contenido principal de esta página. -->
   <main class="catalog-shell">
+    <!-- Encabezado de la pantalla y navegación principal. -->
     <header class="catalog-header">
       <p class="eyebrow">UDG MARKET <span aria-hidden="true">/</span> EXPLORAR</p>
       <div class="heading-row">
@@ -54,6 +57,7 @@
     </section>
   </main>
 
+  <!-- Panel modal para información o acciones adicionales. -->
   <dialog id="product-dialog" class="product-dialog" aria-labelledby="dialog-title">
     <div class="dialog-content">
       <button id="close-dialog" class="dialog-close" type="button" aria-label="Cerrar detalles">
@@ -63,6 +67,7 @@
     </div>
   </dialog>
 
+  <!-- Navegación disponible dentro de la pantalla. -->
   <nav class="catalog-bottom-nav" aria-label="Navegación inferior">
     <a href="/app/dashboard.html#seller-orders" aria-label="Ventas">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10l1 3h3l-1.5 13h-15L3 7h3zm1.4 3h7.2l-.5-1.5H8.9zM8 10v2a4 4 0 0 0 8 0v-2h-2v2a2 2 0 0 1-4 0v-2z"/></svg>

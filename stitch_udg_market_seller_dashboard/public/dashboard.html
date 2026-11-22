@@ -8,6 +8,8 @@
   <script defer src="/app/assets/dashboard.js"></script>
 </head>
 <body class="app-shell">
+  <!-- Contenedor principal que cambia entre los módulos disponibles según el usuario. -->
+  <!-- Encabezado de la pantalla y navegación principal. -->
   <header class="topbar"><div class="shell topbar-inner">
     <a class="brand" href="/">UDG <b>Market</b></a>
     <div class="top-actions">
@@ -15,6 +17,7 @@
       <button class="button secondary small" id="logout-button" type="button">Cerrar sesión</button>
     </div>
   </div></header>
+  <!-- Contenido principal de esta página. -->
   <main class="shell main app-main">
     <div class="app-heading">
       <div>
@@ -23,6 +26,7 @@
       </div>
     </div>
     <p class="notice" id="global-notice" role="status" aria-live="polite"></p>
+    <!-- Navegación disponible dentro de la pantalla. -->
     <nav class="app-navigation" id="app-navigation" aria-label="Navegación principal">
       <button type="button" data-module-nav="seller-orders" data-seller-only hidden>
         <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v4H3zm2 6h14v12H5zm3 2v2h3v-2zm5 0v2h3v-2zm-5 4v2h3v-2zm5 0v2h3v-2z"/></svg>

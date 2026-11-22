@@ -13,6 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   
+  <!-- Grupo de interacción en línea de esta página. -->
   <script>
     tailwind.config = {
       theme: {
@@ -69,11 +70,13 @@
   </style>
 </head>
 <body class="bg-arena min-h-screen text-navy antialiased flex justify-center pb-24 selection:bg-terracota selection:text-white">
+  <!-- Gestión de pedidos activos y reservas recibidas por el vendedor. -->
 
   <!-- Mobile Wrapper PWA (390px - 430px max viewport) -->
   <div class="w-full max-w-md min-h-screen bg-arena flex flex-col relative shadow-2xl">
 
     <!-- 1. HEADER FIJO -->
+    <!-- Encabezado de la pantalla y navegación principal. -->
     <header class="sticky top-0 z-30 bg-arena/95 backdrop-blur-md px-5 pt-5 pb-3 border-b border-[#D8CDC4]/60">
       <div class="flex items-center justify-between mb-2">
         <!-- Logo / Marca UDG Market -->
@@ -180,6 +183,7 @@
     </div>
 
     <!-- 3. LISTA DE PEDIDOS ACTIVOS (EL NÚCLEO) -->
+    <!-- Contenido principal de esta página. -->
     <main class="px-5 py-2 space-y-3.5 flex-1">
 
       <!-- TARJETA 1: PEDIDO URGENTE (Próxima entrega) -->
@@ -437,6 +441,7 @@
     </div>
 
     <!-- 4. NAVEGACIÓN INFERIOR (Vendedor) -->
+    <!-- Navegación disponible dentro de la pantalla. -->
     <nav class="fixed bottom-0 w-full max-w-md bg-white border-t border-[#D9CEC5] shadow-nav z-40 px-6 py-2">
       <div class="flex items-center justify-around">
         
@@ -477,6 +482,7 @@
   </div>
 
   <!-- INTERACTIVIDAD LIGERA (Cambio de estado y Marcar Entrega) -->
+  <!-- Grupo de interacción en línea de esta página. -->
   <script>
     // Alternar estado de la tienda (Recibiendo pedidos vs En Clase/Pausado)
     function toggleStoreStatus(checkbox) {

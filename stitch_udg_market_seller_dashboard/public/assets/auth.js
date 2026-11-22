@@ -1,11 +1,14 @@
+// Maneja los formularios de acceso y registro de las páginas públicas.
 const authForm = document.querySelector('[data-auth-form]');
 
+// Muestra errores o confirmaciones junto al formulario.
 function showAuthMessage(message, isSuccess) {
   const notice = authForm.querySelector('.notice');
   notice.textContent = message;
   notice.classList.toggle('success', Boolean(isSuccess));
 }
 
+// En registro carga campus disponibles y pide nombre de tienda solo a vendedores.
 if (authForm && authForm.dataset.authForm === 'register') {
   const campusSelect = authForm.elements.campusCode;
   const accountType = authForm.elements.accountType;
@@ -34,6 +37,7 @@ if (authForm && authForm.dataset.authForm === 'register') {
   updateStoreField();
 }
 
+// Envía el formulario correspondiente a la API y abre el dashboard al autenticar.
 authForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
   const submitButton = authForm.querySelector('button[type="submit"]');

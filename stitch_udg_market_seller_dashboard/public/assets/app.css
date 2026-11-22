@@ -1,3 +1,4 @@
+/* Base compartida: paleta, tipografía y reglas generales de distribución. */
 :root {
   color-scheme: light;
   --ink: #1e293b;
@@ -10,6 +11,7 @@
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
+/* Estructura común: barra superior y contenedores adaptables. */
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body { margin: 0; color: var(--ink); background: var(--background); }
@@ -75,6 +77,7 @@ button { cursor: pointer; }
 .pill.warn { background: #fef3c7; color: #92400e; }
 .separator { height: 1px; border: 0; background: var(--line); margin: 18px 0; }
 
+/* Adaptación a pantallas pequeñas y navegación móvil fija. */
 @media (max-width: 560px) {
   .topbar-inner { align-items: flex-start; padding: 14px 0; }
   .top-actions { align-items: flex-end; flex-direction: column; gap: 5px; }

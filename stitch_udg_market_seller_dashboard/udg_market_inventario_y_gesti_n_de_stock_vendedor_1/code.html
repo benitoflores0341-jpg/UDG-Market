@@ -12,6 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
 <!-- FontAwesome 6 -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<!-- Grupo de interacción en línea de esta página. -->
 <script>
     tailwind.config = {
       theme: {
@@ -53,9 +54,11 @@
   </style>
 </head>
 <body class="h-full bg-[#EFECE8] flex justify-center text-navy font-sans antialiased selection:bg-terracota selection:text-white">
+  <!-- Vista de inventario y control de existencias del vendedor. -->
 <!-- Mobile Viewport Container (390px - 425px max phone frame) -->
 <div class="w-full max-w-[425px] min-h-screen bg-slate-50 flex flex-col relative shadow-2xl overflow-x-hidden pb-28 border-x border-slate-200/80">
 <!-- 1. HEADER FIJO / APP BAR -->
+<!-- Encabezado de la pantalla y navegación principal. -->
 <header class="sticky top-0 z-30 bg-slate-50/90 backdrop-blur-md px-4 py-3.5 border-b border-slate-200/70 flex items-center justify-between transition-all">
 <button aria-label="Regresar" class="w-10 h-10 rounded-full flex items-center justify-center text-navy hover:bg-slate-200/70 active:scale-95 transition-all" onclick="history.back()">
 <i class="fa-solid fa-arrow-left text-lg"></i>
@@ -68,6 +71,7 @@
 </button>
 </header>
 <!-- MAIN SCROLLABLE CONTENT -->
+<!-- Contenido principal de esta página. -->
 <main class="flex-1 px-4 py-4 space-y-4">
 <!-- 2. TARJETA DE USUARIO (INFO BÁSICA) -->
 <section class="bg-white rounded-3xl p-5 shadow-soft border border-slate-100 flex items-center gap-4 relative overflow-hidden group">
@@ -282,6 +286,7 @@
 </div>
 </main>
 <!-- 6. BARRA DE NAVEGACIÓN INFERIOR (PWA PERSISTENTE) -->
+<!-- Navegación disponible dentro de la pantalla. -->
 <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[425px] bg-white/95 backdrop-blur-md border-t border-slate-200/80 py-2.5 px-6 z-40 flex items-center justify-around shadow-[0_-4px_20px_rgba(0,0,0,0.04)]">
 <!-- Pestaña Ventas -->
 <a class="flex flex-col items-center gap-1 text-slate-400 hover:text-navy transition-colors group relative" href="#">
@@ -463,6 +468,7 @@
 </div>
 </div>
 <!-- JAVASCRIPT PURO -->
+<!-- Grupo de interacción en línea de esta página. -->
 <script>
     /**
      * Gestión del modal de Edición de Perfil y Centro Universitario

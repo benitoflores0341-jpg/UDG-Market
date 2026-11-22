@@ -21,8 +21,10 @@ const uploadRoutes = require('./routes/uploads');
 const projectRoot = path.resolve(__dirname, '..');
 const publicRoot = path.join(projectRoot, 'public');
 const imagesRoot = path.join(projectRoot, 'imagenes');
+// Crea la carpeta donde multer guarda imágenes de productos y avatares.
 fs.mkdirSync(imagesRoot, { recursive: true });
 
+// Prepara seguridad HTTP, límites de solicitudes y sesiones persistidas en MySQL.
 const app = express();
 if (config.nodeEnv === 'production') app.set('trust proxy', 1);
 app.disable('x-powered-by');
@@ -62,12 +64,14 @@ const authLimiter = rateLimit({
   message: { error: 'Demasiados intentos. Espera 15 minutos e inténtalo de nuevo.' }
 });
 
+// Verifica que tanto las tablas de usuarios como las de sesiones estén accesibles.
 app.get('/api/health', async (req, res) => {
   await pool.query('SELECT 1 FROM users LIMIT 0');
   await pool.query('SELECT 1 FROM sessions LIMIT 0');
   res.json({ status: 'ok', database: 'connected' });
 });
 
+// Limita las escrituras API a JSON, salvo las cargas multipart de imágenes.
 app.use('/api', apiLimiter, (req, res, next) => {
   if (
     ['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method) &&
@@ -78,6 +82,7 @@ app.use('/api', apiLimiter, (req, res, next) => {
   next();
 });
 
+// Agrupa autenticación, perfil, catálogo, pedidos, reseñas, QR e imágenes.
 app.use('/api/auth', (req, res, next) => {
   if (req.method === 'POST' && ['/login', '/register'].includes(req.path)) {
     return authLimiter(req, res, next);
@@ -91,6 +96,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/uploads', uploadRoutes);
 
+// Publica las imágenes con controles para evitar archivos ocultos o tipos confusos.
 app.use('/imagenes', express.static(imagesRoot, {
   dotfiles: 'deny',
   index: false,
@@ -101,6 +107,7 @@ app.use('/imagenes', express.static(imagesRoot, {
   }
 }));
 
+// El dashboard requiere una sesión activa; los demás recursos estáticos se sirven desde /app.
 app.get('/app/dashboard.html', (req, res) => {
   if (!req.session.user) return res.redirect('/app/login.html');
   res.sendFile(path.join(publicRoot, 'dashboard.html'));
@@ -126,6 +133,7 @@ const modulePages = {
   'inventory-stock': 'udg_market_inventario_y_gesti_n_de_stock_vendedor_1/code.html',
   'inventory-stock-alt': 'udg_market_inventario_y_gesti_n_de_stock_vendedor_2/code.html'
 };
+// Define qué pantallas HTML se cargan dentro del iframe principal de la aplicación.
 const sellerOnlyModules = new Set([
   'inventory',
   'seller-orders',
@@ -134,11 +142,13 @@ const sellerOnlyModules = new Set([
   'inventory-stock-alt'
 ]);
 
+// Entrega al iframe el helper de autenticación solo cuando existe una sesión.
 app.get('/modulos/auth.js', (req, res) => {
   if (!req.session.user) return res.status(401).type('text').send('');
   res.sendFile(path.join(publicRoot, 'assets', 'module-auth.js'));
 });
 
+// Resuelve las pantallas del dashboard y bloquea módulos exclusivos de vendedor.
 app.get('/modulos/:module', (req, res, next) => {
   if (!req.session.user) return res.redirect('/app/login.html');
   const relativePath = modulePages[req.params.module];
@@ -155,6 +165,7 @@ app.get('/modulos/:module', (req, res, next) => {
   });
 });
 
+// Redirige las rutas cortas a la pantalla de acceso o al dashboard correspondiente.
 app.get('/', (req, res) => {
   res.redirect(req.session.user ? '/app/dashboard.html' : '/app/login.html');
 });

@@ -14,18 +14,21 @@ const CANCELLATION_REASONS = new Set([
   'other'
 ]);
 
+// Combina una marca de tiempo con bytes aleatorios para generar un código legible.
 function makeOrderCode() {
   const timestamp = Date.now().toString(36).toUpperCase();
   const suffix = crypto.randomBytes(3).toString('hex').toUpperCase();
   return `UDG-${timestamp}-${suffix}`;
 }
 
+// Adjunta el estado HTTP a un error para que el middleware lo responda al cliente.
 function orderError(statusCode, message) {
   const error = new Error(message);
   error.statusCode = statusCode;
   return error;
 }
 
+// Carga los renglones de varios pedidos y los agrupa por ID para armar sus respuestas.
 async function getOrderItems(orderIds) {
   if (!orderIds.length) return new Map();
   const placeholders = orderIds.map(() => '?').join(',');
@@ -51,6 +54,7 @@ async function getOrderItems(orderIds) {
   return grouped;
 }
 
+// Crea un pedido pendiente, valida vendedor/stock y descuenta existencias atómicamente.
 router.post('/', requireAuth, async (req, res) => {
   const body = req.body || {};
   const items = body.items;
@@ -174,6 +178,7 @@ router.post('/', requireAuth, async (req, res) => {
   res.status(201).json({ order });
 });
 
+// Lista pedidos propios como comprador, vendedor o administrador y agrega sus productos.
 router.get('/', requireAuth, async (req, res) => {
   const conditions = [];
   const values = [];
@@ -233,6 +238,7 @@ router.get('/', requireAuth, async (req, res) => {
   });
 });
 
+// Devuelve el detalle de un pedido solo a sus participantes o a un administrador.
 router.get('/:id', requireAuth, async (req, res) => {
   const id = parseId(req.params.id);
   if (!id) return res.status(400).json({ error: 'El pedido no es válido.' });
@@ -266,6 +272,7 @@ router.get('/:id', requireAuth, async (req, res) => {
   });
 });
 
+// Confirma una solicitud pendiente solo si pertenece al vendedor autenticado.
 router.post('/:id/confirm', requireSeller, async (req, res) => {
   const id = parseId(req.params.id);
   if (!id) return res.status(400).json({ error: 'El pedido no es válido.' });
@@ -280,6 +287,7 @@ router.post('/:id/confirm', requireSeller, async (req, res) => {
   res.json({ status: 'confirmed' });
 });
 
+// Cambia el pedido confirmado o listo a entregado para el vendedor propietario.
 router.post('/:id/deliver', requireSeller, async (req, res) => {
   const id = parseId(req.params.id);
   if (!id) return res.status(400).json({ error: 'El pedido no es válido.' });
@@ -294,6 +302,7 @@ router.post('/:id/deliver', requireSeller, async (req, res) => {
   res.json({ status: 'delivered' });
 });
 
+// Cambia a preparado un pedido confirmado para indicar que ya puede recogerse.
 router.post('/:id/ready', requireSeller, async (req, res) => {
   const id = parseId(req.params.id);
   if (!id) return res.status(400).json({ error: 'El pedido no es válido.' });
@@ -308,6 +317,7 @@ router.post('/:id/ready', requireSeller, async (req, res) => {
   res.json({ status: 'ready' });
 });
 
+// Cancela un pedido autorizado, revoca su QR y repone el stock en una transacción.
 router.post('/:id/cancel', requireAuth, async (req, res) => {
   const id = parseId(req.params.id);
   const { reasonCode, details } = req.body || {};
@@ -316,6 +326,7 @@ router.post('/:id/cancel', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'Revisa el motivo de cancelación.' });
   }
   const cancelled = await withTransaction(async (connection) => {
+    // Bloquea el pedido para impedir cancelaciones concurrentes o cambios de estado.
     const [rows] = await connection.execute(
       `SELECT id, buyer_id AS buyerId, seller_id AS sellerId, status
        FROM orders WHERE id = ? FOR UPDATE`,
@@ -345,6 +356,7 @@ router.post('/:id/cancel', requireAuth, async (req, res) => {
       [id]
     );
 
+    // Restaura existencias y reactiva solo los productos pausados automáticamente.
     const [items] = await connection.execute(
       'SELECT product_id AS productId, quantity FROM order_items WHERE order_id = ? FOR UPDATE',
       [id]
@@ -380,6 +392,7 @@ router.post('/:id/cancel', requireAuth, async (req, res) => {
   res.json({ status: 'cancelled' });
 });
 
+// Confirma manualmente el pago cuando el vendedor lo recibió fuera de la aplicación.
 router.post('/:id/payment/confirm', requireSeller, async (req, res) => {
   const id = parseId(req.params.id);
   if (!id) return res.status(400).json({ error: 'El pedido no es válido.' });

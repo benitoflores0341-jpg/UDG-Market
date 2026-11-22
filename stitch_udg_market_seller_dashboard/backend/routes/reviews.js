@@ -5,6 +5,7 @@ const { requireAuth } = require('../middleware/auth');
 
 const router = Router();
 
+// Publica reseñas y estadísticas del vendedor sin exponer información privada.
 router.get('/seller/:sellerId', async (req, res) => {
   const sellerId = parseId(req.params.sellerId);
   if (!sellerId) return res.status(400).json({ error: 'El vendedor no es válido.' });
@@ -31,6 +32,7 @@ router.get('/seller/:sellerId', async (req, res) => {
   res.json({ summary: summary[0], reviews });
 });
 
+// Permite reseñar una línea de compra propia solo después de confirmar su entrega.
 router.post('/', requireAuth, async (req, res) => {
   const { orderItemId, rating, comment } = req.body || {};
   const itemId = parseId(orderItemId);

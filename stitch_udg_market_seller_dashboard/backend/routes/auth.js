@@ -10,6 +10,7 @@ const {
 
 const router = Router();
 
+// Regenera la sesión antes de autenticar para evitar reutilizar un identificador previo.
 function saveLoginSession(req, user) {
   return new Promise((resolve, reject) => {
     req.session.regenerate((error) => {
@@ -20,11 +21,13 @@ function saveLoginSession(req, user) {
   });
 }
 
+// Proporciona el catálogo de campus usado en registro y edición del perfil.
 router.get('/campuses', async (req, res) => {
   const [campuses] = await pool.execute('SELECT id, code, name FROM campuses ORDER BY name');
   res.json({ campuses });
 });
 
+// Valida la cuenta nueva y crea en una transacción el usuario y sus perfiles relacionados.
 router.post('/register', async (req, res) => {
   const {
     fullName,
@@ -102,6 +105,7 @@ router.post('/register', async (req, res) => {
   res.status(201).json({ user });
 });
 
+// Comprueba las credenciales y guarda en sesión únicamente el ID y rol de la cuenta.
 router.post('/login', async (req, res) => {
   const email = normalizeEmail(req.body && req.body.email);
   const password = req.body && req.body.password;
@@ -123,6 +127,7 @@ router.post('/login', async (req, res) => {
   res.json({ user: { id: user.id, role: user.role } });
 });
 
+// Devuelve los datos actuales de la cuenta para hidratar el dashboard autenticado.
 router.get('/me', async (req, res) => {
   if (!req.session.user) return res.status(401).json({ error: 'Inicia sesión para continuar.' });
 
@@ -144,6 +149,7 @@ router.get('/me', async (req, res) => {
   res.json({ user: users[0] });
 });
 
+// Invalida la sesión actual y borra la cookie del navegador.
 router.post('/logout', (req, res, next) => {
   req.session.destroy((error) => {
     if (error) return next(error);

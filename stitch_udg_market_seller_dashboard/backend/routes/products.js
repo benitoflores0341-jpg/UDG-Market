@@ -11,6 +11,7 @@ const { requireAuth, requireSeller } = require('../middleware/auth');
 
 const router = Router();
 
+// Valida y deduplica los puntos de entrega enviados con un producto.
 function parsePickupIds(value) {
   if (value === undefined) return [];
   if (!Array.isArray(value) || value.length > 20) return null;
@@ -18,12 +19,14 @@ function parsePickupIds(value) {
   return ids.every(Boolean) && new Set(ids).size === ids.length ? ids : null;
 }
 
+// Acepta imágenes almacenadas por la app o URLs HTTP(S) válidas.
 function validImageUrl(value) {
   return value == null ||
     (isNonEmptyString(value, 2048) &&
       (value.startsWith('/imagenes/') || /^https?:\/\//i.test(value)));
 }
 
+// Extrae, normaliza y valida los campos de creación/edición del producto.
 function productFields(body, isCreate) {
   const fields = {};
   const errors = [];
@@ -70,6 +73,7 @@ function productFields(body, isCreate) {
   return { fields, errors, tags, pickupLocationIds };
 }
 
+// Reemplaza el conjunto de etiquetas del producto dentro de la transacción actual.
 async function replaceTags(connection, productId, tags) {
   await connection.execute('DELETE FROM product_tag_assignments WHERE product_id = ?', [productId]);
   for (const tag of tags) {
@@ -85,6 +89,7 @@ async function replaceTags(connection, productId, tags) {
   }
 }
 
+// Asocia solo puntos activos que pertenecen al vendedor del producto.
 async function replacePickupLocations(connection, sellerId, productId, locationIds) {
   if (locationIds.length) {
     const placeholders = locationIds.map(() => '?').join(',');
@@ -108,6 +113,7 @@ async function replacePickupLocations(connection, sellerId, productId, locationI
   }
 }
 
+// Evita guardar una categoría inexistente como parte del producto.
 async function assertCategoryExists(connection, categoryId) {
   if (categoryId == null) return;
   const [categories] = await connection.execute('SELECT id FROM categories WHERE id = ?', [categoryId]);
@@ -118,6 +124,7 @@ async function assertCategoryExists(connection, categoryId) {
   }
 }
 
+// Consulta etiquetas de varios productos y las agrupa para su respuesta API.
 async function listProductTags(productIds) {
   if (!productIds.length) return new Map();
   const placeholders = productIds.map(() => '?').join(',');
@@ -137,6 +144,7 @@ async function listProductTags(productIds) {
   return grouped;
 }
 
+// Convierte una fila MySQL al formato público usado por las pantallas.
 function mapProduct(row, tags) {
   return {
     id: row.id,
@@ -160,6 +168,7 @@ function mapProduct(row, tags) {
   };
 }
 
+// Consulta base compartida por catálogo, inventario del vendedor y detalle.
 const productSelect = `SELECT p.id, p.seller_id AS sellerId, u.full_name AS sellerName,
   sp.accepts_orders AS acceptsOrders,
   c.code AS campusCode, p.category_id AS categoryId, cat.name AS categoryName,
@@ -172,6 +181,7 @@ const productSelect = `SELECT p.id, p.seller_id AS sellerId, u.full_name AS sell
   LEFT JOIN campuses c ON c.id = u.campus_id
   LEFT JOIN categories cat ON cat.id = p.category_id`;
 
+// Lista productos disponibles y aplica búsqueda, categoría y campus.
 router.get('/', async (req, res) => {
   const conditions = [
     'p.is_active = TRUE',
@@ -210,6 +220,7 @@ router.get('/', async (req, res) => {
   res.json({ products: rows.map((row) => mapProduct(row, tags)) });
 });
 
+// Devuelve al vendedor sus productos, incluidos los pausados o sin existencias.
 router.get('/mine', requireSeller, async (req, res) => {
   const [rows] = await pool.execute(
     `${productSelect} WHERE p.seller_id = ? ORDER BY p.updated_at DESC`,
@@ -219,11 +230,13 @@ router.get('/mine', requireSeller, async (req, res) => {
   res.json({ products: rows.map((row) => mapProduct(row, tags)) });
 });
 
+// Proporciona las categorías disponibles para publicar o filtrar productos.
 router.get('/categories', async (req, res) => {
   const [categories] = await pool.execute('SELECT id, name FROM categories ORDER BY name');
   res.json({ categories });
 });
 
+// Lista los puntos de entrega asociados a la tienda del vendedor.
 router.get('/pickup-locations/mine', requireSeller, async (req, res) => {
   const [locations] = await pool.execute(
     `SELECT id, name, details, is_active AS isActive
@@ -233,6 +246,7 @@ router.get('/pickup-locations/mine', requireSeller, async (req, res) => {
   res.json({ locations: locations.map((row) => ({ ...row, isActive: Boolean(row.isActive) })) });
 });
 
+// Crea un punto de entrega y lo enlaza a los productos existentes de la tienda.
 router.post('/pickup-locations', requireSeller, async (req, res) => {
   const { name, details } = req.body || {};
   if (!isNonEmptyString(name, 120) ||
@@ -256,6 +270,7 @@ router.post('/pickup-locations', requireSeller, async (req, res) => {
   });
 });
 
+// Actualiza los datos o la disponibilidad de un punto de entrega propio.
 router.patch('/pickup-locations/:id', requireSeller, async (req, res) => {
   const id = parseId(req.params.id);
   const { name, details, isActive } = req.body || {};
@@ -285,6 +300,7 @@ router.patch('/pickup-locations/:id', requireSeller, async (req, res) => {
   res.json({ message: 'Punto de entrega actualizado.' });
 });
 
+// Crea un producto, sus etiquetas y sus puntos de entrega en una transacción.
 router.post('/', requireSeller, async (req, res) => {
   const parsed = productFields(req.body || {}, true);
   if (parsed.errors.length) {
@@ -329,6 +345,7 @@ router.post('/', requireSeller, async (req, res) => {
   res.status(201).json({ product: { id: productId } });
 });
 
+// Devuelve detalle y lugares de entrega, ocultando productos no disponibles a otros usuarios.
 router.get('/:id', async (req, res) => {
   const id = parseId(req.params.id);
   if (!id) return res.status(400).json({ error: 'El producto no es válido.' });
@@ -356,6 +373,7 @@ router.get('/:id', async (req, res) => {
   });
 });
 
+// Cambia el stock y administra la pausa automática cuando queda agotado.
 router.patch('/:id/stock', requireSeller, async (req, res) => {
   const productId = parseId(req.params.id);
   const stock = req.body && req.body.stock;
@@ -390,6 +408,7 @@ router.patch('/:id/stock', requireSeller, async (req, res) => {
   res.json({ product: { id: productId, ...updated } });
 });
 
+// Actualiza campos, etiquetas y puntos de entrega sin cambiar datos omitidos.
 router.patch('/:id', requireSeller, async (req, res) => {
   const productId = parseId(req.params.id);
   if (!productId) return res.status(400).json({ error: 'El producto no es válido.' });
@@ -457,6 +476,7 @@ router.patch('/:id', requireSeller, async (req, res) => {
   res.json({ message: 'Producto actualizado.' });
 });
 
+// Desactiva un producto propio sin eliminar su historial de pedidos.
 router.delete('/:id', requireSeller, async (req, res) => {
   const id = parseId(req.params.id);
   if (!id) return res.status(400).json({ error: 'El producto no es válido.' });

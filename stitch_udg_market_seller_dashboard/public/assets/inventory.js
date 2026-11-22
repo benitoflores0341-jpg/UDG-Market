@@ -1,3 +1,4 @@
+// Almacena productos, categorías y puntos de entrega cargados para el vendedor.
 const inventoryState = {
   products: [],
   categories: [],
@@ -5,6 +6,7 @@ const inventoryState = {
   toastTimer: null
 };
 
+// Llama a la API con cookie de sesión, serialización JSON y manejo común de errores.
 async function inventoryRequest(url, options = {}) {
   const headers = new Headers(options.headers || {});
   if (options.body && !(options.body instanceof FormData) && !headers.has('Content-Type')) {
@@ -25,6 +27,7 @@ async function inventoryRequest(url, options = {}) {
   return body;
 }
 
+// Sube una imagen del producto y devuelve la URL pública generada por el backend.
 async function uploadInventoryImage(file) {
   const formData = new FormData();
   formData.append('image', file);
@@ -38,6 +41,7 @@ async function uploadInventoryImage(file) {
   return result.image.url;
 }
 
+// Formatea precios en pesos mexicanos para la lista de inventario.
 function inventoryPrice(value) {
   return new Intl.NumberFormat('es-MX', {
     style: 'currency',
@@ -46,6 +50,7 @@ function inventoryPrice(value) {
   }).format(Number(value));
 }
 
+// Muestra un mensaje temporal de éxito o error en la pantalla de inventario.
 function inventoryToast(message) {
   const toast = document.getElementById('toast');
   toast.textContent = message;
@@ -58,6 +63,7 @@ function inventoryToast(message) {
   }, 3000);
 }
 
+// Crea nodos DOM con clases y texto para evitar insertar datos del producto como HTML.
 function inventoryElement(tag, className, text) {
   const element = document.createElement(tag);
   if (className) element.className = className;
@@ -65,6 +71,7 @@ function inventoryElement(tag, className, text) {
   return element;
 }
 
+// Previsualiza una imagen local o existente y revoca URLs temporales al reemplazarlas.
 function updateImagePreview(input, preview, fallbackUrl = '') {
   if (preview.dataset.objectUrl) {
     URL.revokeObjectURL(preview.dataset.objectUrl);
@@ -94,6 +101,7 @@ function updateImagePreview(input, preview, fallbackUrl = '') {
   preview.hidden = true;
 }
 
+// Dibuja el estado vacío y, si aplica, ofrece volver a cargar el inventario.
 function inventoryEmptyState(message, retry = false) {
   const item = inventoryElement('li', 'rounded-2xl border border-slate-100 bg-white p-6 text-center shadow-sm');
   item.append(inventoryElement('p', 'text-sm font-semibold text-slate-500', message));
@@ -106,6 +114,7 @@ function inventoryEmptyState(message, retry = false) {
   return item;
 }
 
+// Construye una fila con imagen, stock, interruptor de publicación y edición.
 function inventoryCard(product) {
   const soldOut = product.stock === 0;
   const active = product.isActive && !soldOut;
@@ -183,6 +192,7 @@ function inventoryCard(product) {
   return item;
 }
 
+// Renderiza productos y contadores de activos, pausados y agotados.
 function renderInventory() {
   const list = document.getElementById('list');
   list.replaceChildren();
@@ -205,6 +215,7 @@ function renderInventory() {
   }
 }
 
+// Carga en paralelo productos, categorías y ubicaciones antes de redibujar la pantalla.
 async function loadInventory() {
   const list = document.getElementById('list');
   list.replaceChildren(inventoryEmptyState('Cargando tu inventario…'));
@@ -231,6 +242,7 @@ async function loadInventory() {
   }
 }
 
+// Llena selectores y solicita un punto de entrega nuevo si la tienda no tiene uno activo.
 function renderCreateOptions() {
   const categorySelect = document.getElementById('create-category');
   categorySelect.replaceChildren(new Option('Sin categoría', ''));
@@ -257,16 +269,19 @@ function renderCreateOptions() {
 const editModal = document.getElementById('edit-modal');
 const createModal = document.getElementById('create-modal');
 
+// Hace visible el modal seleccionado.
 function showModal(modal) {
   modal.classList.remove('hidden');
   modal.classList.add('flex');
 }
 
+// Oculta el modal seleccionado.
 function hideModal(modal) {
   modal.classList.add('hidden');
   modal.classList.remove('flex');
 }
 
+// Carga los valores actuales de un producto en el formulario de edición.
 function openEditModal(product) {
   document.getElementById('edit-id').value = String(product.id);
   document.getElementById('edit-title').value = product.name;
@@ -282,6 +297,7 @@ function openEditModal(product) {
   document.getElementById('edit-title').focus();
 }
 
+// Reinicia el formulario de publicación y prepara sus opciones e imagen.
 function openCreateModal() {
   document.getElementById('create-form').reset();
   document.getElementById('create-error').classList.add('hidden');
@@ -291,6 +307,7 @@ function openCreateModal() {
   document.getElementById('create-name').focus();
 }
 
+// Conecta cierre de ventanas, tecla Escape y previsualizaciones de imágenes.
 document.getElementById('edit-close').addEventListener('click', () => hideModal(editModal));
 document.getElementById('edit-cancel').addEventListener('click', () => hideModal(editModal));
 document.getElementById('create-close').addEventListener('click', () => hideModal(createModal));
@@ -315,6 +332,7 @@ document.getElementById('edit-image').addEventListener('change', (event) => {
   updateImagePreview(event.currentTarget, document.getElementById('edit-image-preview'));
 });
 
+// Guarda los cambios del producto y vuelve a cargar la lista desde la API.
 document.getElementById('edit-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const id = document.getElementById('edit-id').value;
@@ -344,6 +362,7 @@ document.getElementById('edit-form').addEventListener('submit', async (event) =>
   }
 });
 
+// Publica el producto; crea primero un punto de entrega si la tienda aún no tiene uno.
 document.getElementById('create-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const form = event.currentTarget;
@@ -402,6 +421,7 @@ document.getElementById('create-form').addEventListener('submit', async (event) 
   }
 });
 
+// Delega acciones de inventario para editar, pausar/reactivar o actualizar existencias.
 document.getElementById('list').addEventListener('click', async (event) => {
   const button = event.target.closest('[data-action]');
   if (!button || button.disabled) return;
@@ -440,4 +460,5 @@ document.getElementById('list').addEventListener('click', async (event) => {
   }
 });
 
+// Hidrata la pantalla con datos reales al cargar el módulo de inventario.
 loadInventory();

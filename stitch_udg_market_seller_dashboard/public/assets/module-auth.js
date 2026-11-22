@@ -1,3 +1,4 @@
+// Comprueba que el iframe tenga una sesión; si venció, envía al usuario al acceso.
 fetch('/api/auth/me', { credentials: 'same-origin' })
   .then((response) => {
     if (response.status === 401) {

@@ -28,6 +28,7 @@ const upload = multer({
   }
 });
 
+// Recibe una imagen autenticada, filtra sus formatos/tamaño y devuelve su URL pública.
 router.post('/images', requireAuth, upload.single('image'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Selecciona una imagen JPG, PNG o WebP.' });
   res.status(201).json({
